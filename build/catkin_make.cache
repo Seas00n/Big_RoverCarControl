@@ -1,0 +1,2 @@
+car_control
+-DCATKIN_DEVEL_PREFIX=/home/yuxuan/Project/Big_RoverCarControl/devel -DCMAKE_INSTALL_PREFIX=/home/yuxuan/Project/Big_RoverCarControl/install -G Unix Makefiles
