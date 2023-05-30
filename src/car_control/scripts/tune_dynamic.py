@@ -23,11 +23,13 @@ class SecondOrderDynamics:
 
 
 if __name__ =="__main__":
-    sys = SecondOrderDynamics(f=10,z=1.2,r=0)
+    sys = SecondOrderDynamics(f=10,z=0.55,r=0.003)
     times = np.arange(0,500)
-    x_goal = np.ones_like(times)*10
+    x_goal = np.zeros_like(times)
     for i in range(0,100):
         x_goal[i] = 0
+    for i in range(100,np.size(x_goal,0)):
+        x_goal[i] = 2*i
     y_list = np.zeros_like(times).astype('float32')
     for i in times:
         y_list[i] = sys.Update(x_goal[i])

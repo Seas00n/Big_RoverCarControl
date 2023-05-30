@@ -4,7 +4,6 @@
 #include "spine/dynamixel_motor.h"
 #include "spine/minicheetah_motor.h"
 #include "msg_.hpp"
-// #include "rover_control/corner.h"
 #include "car_control/rover.h"
 #include "ros/ros.h"
 #include "geometry_msgs/Twist.h"
@@ -14,11 +13,7 @@ RoverTypeDef rover_temp;
 
 bool is_thread_ok = true;
 
-#define PI 3.141592657
-#define wheel_to_center_x 0.5
-#define wheel_to_center_y 0.5
-#define wheel_to_center sqrt(pow(wheel_to_center_x,2)+pow(wheel_to_center_y,2))
-#define cal_distance(x,y) sqrt(pow(x,2)+pow(y,2))
+
 enum CAR_STATE{GO_AHEAD=0,CHANGE_TO_TURN=1,TURN=2,CHANGE_TO_GO=3};
 
 
@@ -57,7 +52,6 @@ void cmdTxThread(std::vector<AK10_9Motor> wheel_Motor,
 void FSMControl(const car_control::rover::ConstPtr& p, RoverTypeDef& rover_temp,
                 std::vector<SteeringWheelTypeDef>& actuators){
   volatile int current_state = rover_temp.rover_motion_state;
-  // std::cout<<"current state:"<<current_state<<std::endl;
   if(current_state==0){
     // std::cout<<"State GO_AHEAD";
     rover_temp.rover_v= p->rover_vx;
