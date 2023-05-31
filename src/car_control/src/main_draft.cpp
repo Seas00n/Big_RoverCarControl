@@ -47,7 +47,34 @@ void cmdTxThread(std::vector<AK10_9Motor> wheel_Motor,
       }
     }
 }
+void SingleBikeControl(const car_control::rover::ConstPtr& p, RoverTypeDef& rover_temp,
+                std::vector<SteeringWheelTypeDef>& actuators){
+    volatile int current_state = rover_temp.rover_motion_state;
+    if(current_state==0){
+      //此处的p->
+      double vf = p->rover_vx;
+      double delta_f = p->rover_w;
+      if(delta_f>PI/12.0)
+        delta_f = PI/12.0;
+      else if (delta_f<-30/12.0)
+        delta_f = -PI/12.0;
+      
+      //设置后轮
+      actuators[2].steer_p_desired = 0;
+      actuators[3].steer_p_desired = 0;
+      actuators[2].wheel_v_desired = vf;
+      actuators[3].wheel_v_desired = vf;
+      //设置前轮
+      actuators[0].steer_p_desired = delta_f;
+      actuators[1].steer_p_desired = delta_f;
+      actuators[0].wheel_v_desired = vf;
+      actuators[1].wheel_v_desired = vf;
+      
+      rover_temp.rover_v = vf;
+      rover_temp.rover_w = vf*tan(delta_f)/(2*wheel_to_center_x);
 
+    }
+}
 
 void FSMControl(const car_control::rover::ConstPtr& p, RoverTypeDef& rover_temp,
                 std::vector<SteeringWheelTypeDef>& actuators){
