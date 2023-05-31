@@ -7,6 +7,4 @@
 # new environment variables
 
 # modified environment variables
-export PKG_CONFIG_PATH="/home/yuxuan/Project/Big_RoverCarControl/devel/lib/pkgconfig:$PKG_CONFIG_PATH"
 export PWD='/home/yuxuan/Project/Big_RoverCarControl/build'
-export PYTHONPATH="/home/yuxuan/Project/Big_RoverCarControl/devel/lib/python3/dist-packages:$PYTHONPATH"

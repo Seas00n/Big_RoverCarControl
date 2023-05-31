@@ -93,6 +93,10 @@ std::vector<ros::Publisher> debug_turtle_pubs;
 std::vector<SecondOrderDynamics> steer_dynamics;
 ros::Subscriber sub_turtle1;
 extern RoverTypeDef rover_temp;
+double car_theta_actual = 0;
+
+
+
 
 
 void thread_sleep(int ms){
@@ -163,24 +167,44 @@ void InitialDebugTurtle(ros::NodeHandle nh){
     debug_turtle_pubs.push_back(nh.advertise<geometry_msgs::Twist>("/C/cmd_vel",10));
     debug_turtle_pubs.push_back(nh.advertise<geometry_msgs::Twist>("/D/cmd_vel",10)); 
     //用二阶系统模仿输入位置指令后舵机的速度变化
-    steer_dynamics.push_back(SecondOrderDynamics(10.0,0.55,0.0,0.0,0.01));
-    steer_dynamics.push_back(SecondOrderDynamics(10.0,0.55,0.0,0.0,0.01));
-    steer_dynamics.push_back(SecondOrderDynamics(10.0,0.55,0.0,0.0,0.01));
-    steer_dynamics.push_back(SecondOrderDynamics(10.0,0.55,0.0,0.0,0.01));
+    steer_dynamics.push_back(SecondOrderDynamics(8.0,0.8,0.0,0.0,0.005));
+    steer_dynamics.push_back(SecondOrderDynamics(8.0,0.8,0.0,0.0,0.005));
+    steer_dynamics.push_back(SecondOrderDynamics(8.0,0.8,0.0,0.0,0.005));
+    steer_dynamics.push_back(SecondOrderDynamics(8.0,0.8,0.0,0.0,0.005));
     //订阅turtle1的Pose作为仿真中小车的位姿
     sub_turtle1 = nh.subscribe<turtlesim::Pose>("/turtle1/pose",100,boost::bind(&turtle1Odm,_1,boost::ref(rover_temp)));
     thread_sleep(10);
     std::vector<double> target_x = {5.5+wheel_to_center_x,5.5+wheel_to_center_x,
                                     5.5-wheel_to_center_x,5.5-wheel_to_center_x};
-    std::vector<double> target_y = {5.5-wheel_to_center_y,5.5+wheel_to_center_y,
-                                    5.5-wheel_to_center_y,5.5+wheel_to_center_y};
-    setDebugTurtlePosition(target_x,target_y,150);
+    std::vector<double> target_y = {5.5+wheel_to_center_y,5.5-wheel_to_center_y,
+                                    5.5+wheel_to_center_y,5.5-wheel_to_center_y};
+    setDebugTurtlePosition(target_x,target_y,200);
 }
 
 void vIW_W(double vIR_Wx,double vIR_Wy, double wIR_W, double rRS_Wx,double rRS_Wy, geometry_msgs::Twist& msg){
     double vx = vIR_Wx-rRS_Wy*wIR_W;
     double vy = vIR_Wy+rRS_Wx*wIR_W;
     msg.linear.x = sqrt(vx*vx+vy*vy);
+}
+
+double phase_unwrap(double original_phase, double phase){
+    double diff = abs(phase-original_phase);
+    if(diff<PI){
+        return phase;
+    }
+    else{
+        double multiple = diff/(2*PI);
+        double remainder = fmod(diff,2*PI);
+        int move = (int)floor(multiple);
+        if(remainder>PI){
+            move++;
+        }
+        if(phase>original_phase){
+            return phase-move*2*PI;
+        }else{
+            return phase+move*2*PI;
+        }
+    }
 }
 void DebugTurtleDynamics(RoverTypeDef& rover_temp,std::vector<SteeringWheelTypeDef>& actuators){
     //将rover_temp中的期望速度作为指令发送到turtle1中
@@ -193,13 +217,13 @@ void DebugTurtleDynamics(RoverTypeDef& rover_temp,std::vector<SteeringWheelTypeD
     debug_turtle_pubs[0].publish(turtle1_twist);
     
     //全车的实际状态会从回调函数中写入到rover_temp中
-    double car_theta_actual = rover_temp.rover_theta_actual;
+    car_theta_actual = phase_unwrap(car_theta_actual,rover_temp.rover_theta_actual);
     double car_px_actual = rover_temp.rover_px_actual;
     double car_py_actual = rover_temp.rover_py_actual;
     std::cout<<"rover_theta_actual:"<<car_theta_actual<<std::endl;
     std::cout<<"rover_px_actual:"<<car_px_actual<<std::endl;
     std::cout<<"rover_py_actual:"<<car_py_actual<<std::endl;
-
+    
     //期望车轮turtle朝向 = 期望舵轮朝向+实际车辆朝向
     //期望车轮turtle转速 = SecondOrderDynamics(期望车轮turtle朝向)
     //期望车轮turtle前进速度 = 期望车轮速度
@@ -207,44 +231,49 @@ void DebugTurtleDynamics(RoverTypeDef& rover_temp,std::vector<SteeringWheelTypeD
     
     //将actuators的期望速度和转向发送的其他turtle
     geometry_msgs::Twist wheel_twist;    
-    double r_theta = rover_temp.rover_theta_actual;
+    double r_theta = car_theta_actual;
     std::cout<<"r_theta"<<r_theta<<std::endl;
     double vIR_Wx = rover_temp.rover_v*cos(r_theta);
     double vIR_Wy = rover_temp.rover_v*sin(r_theta);
     double wIR_W = rover_temp.rover_w;
-    double rRS_Wx = cos(r_theta)*0.5-sin(r_theta)*0.5;
-    double rRS_Wy = sin(r_theta)*0.5+cos(r_theta)*0.5;
+    double rRS_Wx = cos(r_theta)*wheel_to_center_x-sin(r_theta)*wheel_to_center_y;
+    double rRS_Wy = sin(r_theta)*wheel_to_center_x+cos(r_theta)*wheel_to_center_y;//0.5,0.5
+    //将
     vIW_W(vIR_Wx,vIR_Wy,wIR_W,rRS_Wx,rRS_Wy,wheel_twist);
     steer_dynamics[0].Update(actuators[0].steer_p_desired+r_theta);
     actuators[0].steer_p_actual = steer_dynamics[0].get_y();
     wheel_twist.angular.z = steer_dynamics[0].get_yd();
-    wheel_twist.linear.x = actuators[0].wheel_p_desired;
+    // wheel_twist.linear.x = actuators[0].wheel_v_desired;
     debug_turtle_pubs[1].publish(wheel_twist);
+    std::cout<<actuators[0].steer_p_desired*180.0/PI<<std::endl;
+    std::cout<<actuators[1].steer_p_desired*180.0/PI<<std::endl;
+    std::cout<<actuators[2].steer_p_desired*180.0/PI<<std::endl;
+    std::cout<<actuators[3].steer_p_desired*180.0/PI<<std::endl;
 
-    rRS_Wx = cos(r_theta)*0.5-sin(r_theta)*0.5;
-    rRS_Wy = sin(r_theta)*0.5+cos(r_theta)*0.5;
+    rRS_Wx = cos(r_theta)*wheel_to_center_x+sin(r_theta)*wheel_to_center_y;
+    rRS_Wy = sin(r_theta)*wheel_to_center_x-cos(r_theta)*wheel_to_center_y;//0.5,-0.5
     vIW_W(vIR_Wx,vIR_Wy,wIR_W,rRS_Wx,rRS_Wy,wheel_twist);
     steer_dynamics[1].Update(actuators[1].steer_p_desired+r_theta);
     actuators[1].steer_p_actual = steer_dynamics[1].get_y();
     wheel_twist.angular.z = steer_dynamics[1].get_yd();
-    wheel_twist.linear.x = actuators[1].wheel_p_desired;
+    // wheel_twist.linear.x = actuators[1].wheel_v_desired;
     debug_turtle_pubs[2].publish(wheel_twist);
 
-    rRS_Wx = -cos(r_theta)*0.5-sin(r_theta)*0.5;
-    rRS_Wy = sin(r_theta)*0.5+cos(r_theta)*0.5;
+    rRS_Wx = -cos(r_theta)*wheel_to_center_x-sin(r_theta)*wheel_to_center_y;
+    rRS_Wy = -sin(r_theta)*wheel_to_center_x+cos(r_theta)*wheel_to_center_y;//-0.5,0.5
     vIW_W(vIR_Wx,vIR_Wy,wIR_W,rRS_Wx,rRS_Wy,wheel_twist);
     steer_dynamics[2].Update(actuators[2].steer_p_desired+r_theta);
     actuators[2].steer_p_actual = steer_dynamics[2].get_y();
     wheel_twist.angular.z = steer_dynamics[2].get_yd();
-    wheel_twist.linear.x = actuators[2].wheel_p_desired;
+    // wheel_twist.linear.x = actuators[2].wheel_v_desired;
     debug_turtle_pubs[3].publish(wheel_twist);
 
-    rRS_Wx = cos(r_theta)*0.5-sin(r_theta)*0.5;
-    rRS_Wy = -sin(r_theta)*0.5-cos(r_theta)*0.5;
+    rRS_Wx = -cos(r_theta)*wheel_to_center_x+sin(r_theta)*wheel_to_center_y;
+    rRS_Wy = -sin(r_theta)*wheel_to_center_x-cos(r_theta)*wheel_to_center_y;//-0.5,-0.5
     vIW_W(vIR_Wx,vIR_Wy,wIR_W,rRS_Wx,rRS_Wy,wheel_twist);
     steer_dynamics[3].Update(actuators[3].steer_p_desired+r_theta);
     actuators[3].steer_p_actual = steer_dynamics[3].get_y();
     wheel_twist.angular.z = steer_dynamics[3].get_yd();
-    wheel_twist.linear.x = actuators[3].wheel_p_desired;
+    // wheel_twist.linear.x = actuators[3].wheel_v_desired;
     debug_turtle_pubs[4].publish(wheel_twist);
 }

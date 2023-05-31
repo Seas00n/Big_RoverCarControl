@@ -8,7 +8,7 @@
             "name": "ROS: Launch",
             "type": "ros",
             "request": "launch",
-            "target": "/home/yuxuan/Project/Big_RoverCarcontrol/src/car_control/launch/car_ctrl.launch"
+            "target": "/home/yuxuan/Project/Big_RoverCarControl/src/car_control/launch/car_control.launch"
         }
 
     ]

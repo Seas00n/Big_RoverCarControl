@@ -71,10 +71,10 @@ void FSMControl(const car_control::rover::ConstPtr& p, RoverTypeDef& rover_temp,
     // std::cout<<"State Change to Turn"<<std::endl;
     rover_temp.rover_v = 0;
     rover_temp.rover_w = 0;
-    actuators[0].steer_p_desired = -135.0*PI/180.0;
-    actuators[1].steer_p_desired = -45.0*PI/180.0;
-    actuators[2].steer_p_desired = 135.0*PI/180.0;
-    actuators[3].steer_p_desired = 45.0*PI/180.0;
+    actuators[0].steer_p_desired = -45.0*PI/180.0;
+    actuators[1].steer_p_desired = -135.0*PI/180.0;
+    actuators[2].steer_p_desired = 45.0*PI/180.0;
+    actuators[3].steer_p_desired = 135.0*PI/180.0;
     if(p->rover_state==TURN){
       rover_temp.rover_motion_state = TURN;
       // std::cout<<"CHANGE next state"<<rover_temp.rover_motion_state<<std::endl;
@@ -90,10 +90,10 @@ void FSMControl(const car_control::rover::ConstPtr& p, RoverTypeDef& rover_temp,
       actuators[i].wheel_v_desired = wheel_turn;
     }
     // std::cout<<rover_temp.rover_w<<std::endl;
-    actuators[0].steer_p_desired = -135.0*PI/180.0;
-    actuators[1].steer_p_desired = -45.0*PI/180.0;
-    actuators[2].steer_p_desired = 135.0*PI/180.0;
-    actuators[3].steer_p_desired = 45.0*PI/180.0;
+    actuators[0].steer_p_desired = -45.0*PI/180.0;
+    actuators[1].steer_p_desired = -135.0*PI/180.0;
+    actuators[2].steer_p_desired = 45.0*PI/180.0;
+    actuators[3].steer_p_desired = 135.0*PI/180.0;
     if(abs(p->rover_w)<0.01&&abs(p->rover_vx)<0.01&&p->rover_state==CHANGE_TO_GO){
       rover_temp.rover_motion_state = CHANGE_TO_GO;
       // std::cout<<"CHANGE next state"<<rover_temp.rover_motion_state<<std::endl;
@@ -153,7 +153,7 @@ int main(int argc, char *argv[]){
   setlocale(LC_ALL, "");
   ros::init(argc, argv, "control");
   ros::NodeHandle nh;  
-  ros::Rate loop_rate(100);
+  ros::Rate loop_rate(200);
   ROS_INFO_STREAM("节点初始化完成");
   SoftwareInitialization(actuators,nh);
 
