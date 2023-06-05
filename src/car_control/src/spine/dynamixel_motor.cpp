@@ -11,6 +11,11 @@ std::vector<dynamixel::PortHandler *> DynamixelMotor::ports_;
 std::thread *DynamixelMotor::pReadThread_;
 std::vector<DynamixelMotor *> DynamixelMotor::collection_;
 
+
+DynamixelMotor::DynamixelMotor(){
+
+};
+
 DynamixelMotor::DynamixelMotor(uint8_t id, const std::string &portName) {
   bool portOpened = false;
   dynamixel::PortHandler *portHandler = nullptr;

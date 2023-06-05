@@ -1,6 +1,6 @@
 <launch>
-    <node pkg="turtlesim" type="turtlesim_node" name="sim"/>
-    <node pkg ="car_control" type="spawn_turtle" name="spawn"/>
+    <!-- <node pkg="turtlesim" type="turtlesim_node" name="sim"/>
+    <node pkg ="car_control" type="spawn_turtle" name="spawn"/> -->
     <node pkg = "joy" type="joy_node" name="open_joy"/> 
     <node pkg = "car_control" type = "rover_control" name="rover_ctrl" output="screen"/>
     <!-- <node pkg = "rover_control" type="test_listener" name="test_listener" output="screen"/> -->

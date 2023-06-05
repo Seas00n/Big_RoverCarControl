@@ -5,7 +5,7 @@ from geometry_msgs.msg import Twist
 import math
 from car_control.msg import rover
 from enum import Enum
-
+import numpy as np
 
 
 f = 8
@@ -43,15 +43,18 @@ def callback(data):
     axes2 = data.axes[1]
     axes3 = data.axes[3]
     if axes2>0:
-        car_vnew = math.sqrt(axes1*axes1+axes2*axes2)*4
+        car_vnew = math.sqrt(axes1*axes1+axes2*axes2)*0.5
     else:
-        car_vnew = -math.sqrt(axes1*axes1+axes2*axes2)*4
+        car_vnew = -math.sqrt(axes1*axes1+axes2*axes2)*0.5
     
-    car_wnew = axes3*2
+    car_wnew = axes3*0.5
+    if car_wnew>45:
+        car_wnew = 45
+    elif car_wnew<-45:
+        car_wnew = -45
 
     if abs(data.buttons[3]-1)<0.001 and car_statenew == 3: #Y pressed
         car_statenew = State["GO_AHEAD"]
-        car_wnew = 0
     elif abs(data.buttons[1]-1)<0.001 and car_statenew == 0: #B pressed
         car_statenew = State["CHANGE_TO_TURN"]
         car_vnew = 0

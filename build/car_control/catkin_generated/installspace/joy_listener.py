@@ -43,9 +43,9 @@ def callback(data):
     axes2 = data.axes[1]
     axes3 = data.axes[3]
     if axes2>0:
-        car_vnew = math.sqrt(axes1*axes1+axes2*axes2)*4
+        car_vnew = math.sqrt(axes1*axes1+axes2*axes2)*0.5
     else:
-        car_vnew = -math.sqrt(axes1*axes1+axes2*axes2)*4
+        car_vnew = -math.sqrt(axes1*axes1+axes2*axes2)*0.5
     
     car_wnew = axes3*2
 

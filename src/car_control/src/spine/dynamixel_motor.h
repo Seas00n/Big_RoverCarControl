@@ -11,6 +11,7 @@
 
 class DynamixelMotor : public Motor {
 public:
+  DynamixelMotor();
   DynamixelMotor(uint8_t id, const std::string &portName);
   ~DynamixelMotor();
   std::string portName_{};
