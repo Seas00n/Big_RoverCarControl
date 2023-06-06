@@ -1,0 +1,8 @@
+prefix=/home/yuxuan/Project/Big_RoverCarControl/install
+
+Name: ecm_xf
+Description: Description of ecm_xf
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

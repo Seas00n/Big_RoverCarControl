@@ -7,6 +7,11 @@
 #include "car_control/rover.h"
 #include "ros/ros.h"
 #include "geometry_msgs/Twist.h"
+#include "ecm_bridge/driverCmd.h"
+#include "ecm_bridge/driverState.h"
+#include "ecm_.hpp"
+#include "signal.h"
+
 
 std::vector<SteeringWheelTypeDef> actuators;
 RoverTypeDef rover_temp;
@@ -17,51 +22,99 @@ bool is_thread_ok = true;
 enum CAR_STATE{GO_AHEAD=0,CHANGE_TO_TURN=1,TURN=2,CHANGE_TO_GO=3};
 
 
+ros::Publisher ecm_pub;
+driver_cmd driverCMD[4];
+driver_state driver_state_msg[4];
+static std::mutex robot_cmd_mutex;
 
-#define AKMOTOR_ON false
 
 
 
-void canRxThread(SocketCan *sc){
-  sc->clearRxCallback();
-  struct can_frame frame{};
+#define AKMOTOR_ON true
+
+
+
+
+
+void cmdTxThread(DynamixelMotor* steering_Motor){
   while(is_thread_ok){
-    *sc >> frame;
-    if(depackMsg(frame,actuators)){
-    }else{
-      is_thread_ok = false;
-      return;
+    ecm_bridge::driverCmd txmsg;
+    txmsg.enable.resize(dNum, 0);
+    txmsg.opMode.resize(dNum, 0);
+    txmsg.kp.resize(dNum, 0);
+    txmsg.kd.resize(dNum, 0);
+    txmsg.q.resize(dNum, 0);
+    txmsg.qd.resize(dNum, 0);
+    txmsg.cur.resize(dNum, 0);
+    for(int i=0;i<4;i++){
+      steering_Motor[i].setQDes(actuators[i].steer_p_desired);
+      steering_Motor[i].control();
+      txmsg.enable[i] = 1;
+      txmsg.qd[i] = actuators[i].wheel_v_desired;  
+      thread_sleep(3);
     }
-    thread_sleep(5);
+    if(AKMOTOR_ON)
+      ecm_pub.publish(txmsg);
   }
-}
-
-void cmdTxThread(AK10_9Motor* wheel_Motor, DynamixelMotor* steering_Motor){
-  while(is_thread_ok){
-      for(int i=0;i<4;i++){
-        steering_Motor[i].setQDes(actuators[i].steer_p_desired);
-        steering_Motor[i].control();
-        thread_sleep(5);
-        wheel_Motor[i].setQdDes(actuators[i].wheel_v_desired);
-        wheel_Motor[i].setKpKd(0,4);
-        wheel_Motor[i].control();
-        thread_sleep(5);
-      }
-    }
 }
 
 
 void cmdTxThread_OnlySteering(DynamixelMotor* steering_Motor){
     while(is_thread_ok){
       for(int i=0;i<4;i++){
-        steering_Motor[i].setQDes(actuators[i].steer_p_desired);
-        steering_Motor[i].control();
+        // steering_Motor[i].setQDes(actuators[i].steer_p_desired);
+        // steering_Motor[i].control();
         std::cout<<"steering Motor ["<<i<<"]="<<actuators[i].steer_p_desired<<std::endl;
         std::cout<<"wheel_Motor ["<<i<<"]="<<actuators[i].wheel_v_desired<<std::endl;
         thread_sleep(5);
       }
     }
 }
+
+
+void ecm_driverStateCallback(const ecm_bridge::driverState::ConstPtr &msg){
+  std::lock_guard<std::mutex> lock(robot_cmd_mutex);
+  for(int i=0;i<4;i++){
+    driver_state_msg[i].sw = msg->sw[i];
+    driver_state_msg[i].error = msg->error[i];
+    driver_state_msg[i].opMode = msg->opMode[i];
+    driver_state_msg[i].q = msg->q[i];
+    driver_state_msg[i].qd = msg->qd[i];
+    driver_state_msg[i].cur = msg->cur[i];
+    driver_state_msg[i].dc_v = msg->dc_v[i];
+    actuators[i].wheel_p_actual = driver_state_msg[i].q;
+    actuators[i].wheel_v_actual = driver_state_msg[i].qd;
+
+  }
+}
+
+
+static void sig_handler(int signo){
+  printf("capture sign no:%d\n",signo);
+        ecm_bridge::driverCmd txmsg;
+        txmsg.enable.resize(dNum, 0);
+        txmsg.opMode.resize(dNum, 0);
+        txmsg.kp.resize(dNum, 0);
+        txmsg.kd.resize(dNum, 0);
+        txmsg.q.resize(dNum, 0);
+        txmsg.qd.resize(dNum, 0);
+        txmsg.cur.resize(dNum, 0);
+        for (int i = 0; i < dNum; i++)
+        {
+            txmsg.enable[i]=0;
+            txmsg.qd[i]=0;
+        }
+        if(AKMOTOR_ON)
+          ecm_pub.publish(txmsg);
+	
+	usleep(10000);
+  is_thread_ok = false;
+	ros::shutdown();
+	exit(0);
+}
+
+
+
 void SingleBikeControl(const car_control::rover::ConstPtr& p, RoverTypeDef& rover_temp,
                 std::vector<SteeringWheelTypeDef>& actuators){
     volatile int current_state = rover_temp.rover_motion_state;
@@ -101,7 +154,11 @@ void FSMControl(const car_control::rover::ConstPtr& p, RoverTypeDef& rover_temp,
     for(int i=0;i<4;i++){
       actuators[i].steer_p_desired = 0;
       if(AKMOTOR_ON){
-        actuators[i].wheel_v_desired = rover_temp.rover_v;
+        if(i==0||i==2)
+          actuators[i].wheel_v_desired = rover_temp.rover_v;
+        else if(i==1||i==3){
+          actuators[i].wheel_v_desired = -rover_temp.rover_v;
+        }
       }
     }
     if((abs(p->rover_w)<0.01)&&abs(p->rover_vx<0.01)&&(p->rover_state==CHANGE_TO_TURN)){
@@ -113,10 +170,10 @@ void FSMControl(const car_control::rover::ConstPtr& p, RoverTypeDef& rover_temp,
     std::cout<<"State Change to Turn"<<std::endl;
     rover_temp.rover_v = 0;
     rover_temp.rover_w = 0;
-    actuators[0].steer_p_desired = 45.0;
-    actuators[1].steer_p_desired = 135.0;
-    actuators[2].steer_p_desired = -45.0;
-    actuators[3].steer_p_desired = -135.0;
+    actuators[0].steer_p_desired = 90-diag_angle;
+    actuators[1].steer_p_desired = 90+diag_angle;
+    actuators[2].steer_p_desired = -90+diag_angle;
+    actuators[3].steer_p_desired = -90-diag_angle;
     if(p->rover_state==TURN){
       rover_temp.rover_motion_state = TURN;
     }
@@ -131,10 +188,10 @@ void FSMControl(const car_control::rover::ConstPtr& p, RoverTypeDef& rover_temp,
         actuators[i].wheel_v_desired = rover_temp.rover_w*wheel_to_center;
       }
     }
-    actuators[0].steer_p_desired = 45.0;
-    actuators[1].steer_p_desired = 135.0;
-    actuators[2].steer_p_desired = -45.0;
-    actuators[3].steer_p_desired = -135.0;
+    actuators[0].steer_p_desired = 90-diag_angle;
+    actuators[1].steer_p_desired = 90+diag_angle;
+    actuators[2].steer_p_desired = -90+diag_angle;
+    actuators[3].steer_p_desired = -90-diag_angle;
     if(abs(p->rover_w)<0.01&&abs(p->rover_vx)<0.01&&p->rover_state==CHANGE_TO_GO){
       rover_temp.rover_motion_state = CHANGE_TO_GO;
     }
@@ -172,23 +229,10 @@ int main(int argc, char *argv[]){
     DynamixelMotor(1,"/dev/ttyUSB0"),DynamixelMotor(2,"/dev/ttyUSB0"),
     DynamixelMotor(3,"/dev/ttyUSB0"),DynamixelMotor(4,"/dev/ttyUSB0")
   };
+  //DynamixelMotor steering_Motor[4] = {};
+
   // DynamixelMotor steering_Motor[4];
-  AK10_9Motor wheel_Motor[4];
-  SocketCan can;
   std::cout<<"Steering Motor Ready"<<std::endl;
-  if(AKMOTOR_ON){
-    can.open("can0",1e6);
-    for(int i=0;i<4;i++){
-      wheel_Motor[i].attach(i+1,&can);
-      std::this_thread::sleep_for(std::chrono::milliseconds(5));
-    }
-  }
-  else{
-    std::cout<<"Don't use wheel"<<std::endl;
-  }
-
-
-
 
 
   setlocale(LC_ALL, "");
@@ -203,16 +247,17 @@ int main(int argc, char *argv[]){
   ros::Subscriber sub = nh.subscribe<car_control::rover>("rover_state",
                                                           1000,boost::bind(&FSMControl,_1,
                                                           boost::ref(rover_temp),boost::ref(actuators)));
+  ros::Subscriber cmd_sub = nh.subscribe<ecm_bridge::driverState>("driver_state",10,ecm_driverStateCallback);
+  ecm_pub = nh.advertise<ecm_bridge::driverCmd>("driver_cmd",1);
 
+  signal(SIGINT, sig_handler);
 
 
   //InitialDebugTurtle(nh);
 
   if(AKMOTOR_ON){
-    std::thread cmdTx(cmdTxThread, wheel_Motor, steering_Motor);
-    cmdTx.detach();
-    std::thread canRx(canRxThread, &can);
-    canRx.detach();
+    std::thread cmdTx(cmdTxThread,steering_Motor);
+    cmdTx.detach(); 
   }else{
     std::thread cmdTx(cmdTxThread_OnlySteering, steering_Motor);
     cmdTx.detach();

@@ -1,0 +1,8 @@
+prefix=/home/yuxuan/Project/Big_RoverCarControl/devel
+
+Name: ecm_bridge
+Description: Description of ecm_bridge
+Version: 0.0.0
+Cflags: -I/home/yuxuan/Project/Big_RoverCarControl/devel/include
+Libs: -L${prefix}/lib 
+Requires: 

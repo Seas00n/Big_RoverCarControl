@@ -131,6 +131,8 @@ endif()
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
   include("/home/yuxuan/Project/Big_RoverCarControl/build/gtest/cmake_install.cmake")
+  include("/home/yuxuan/Project/Big_RoverCarControl/build/ecm_bridge/cmake_install.cmake")
+  include("/home/yuxuan/Project/Big_RoverCarControl/build/ecm_xf/cmake_install.cmake")
   include("/home/yuxuan/Project/Big_RoverCarControl/build/car_control/cmake_install.cmake")
 
 endif()

@@ -10,7 +10,10 @@ car_control/CMakeFiles/rover_control.dir/src/main_draft.cpp.o: /home/yuxuan/Down
 car_control/CMakeFiles/rover_control.dir/src/main_draft.cpp.o: /home/yuxuan/Downloads/encoder_motor_steering/DynamixelSDK/include/dynamixel_sdk/port_handler.h
 car_control/CMakeFiles/rover_control.dir/src/main_draft.cpp.o: /home/yuxuan/Project/Big_RoverCarControl/devel/include/car_control/corner.h
 car_control/CMakeFiles/rover_control.dir/src/main_draft.cpp.o: /home/yuxuan/Project/Big_RoverCarControl/devel/include/car_control/rover.h
+car_control/CMakeFiles/rover_control.dir/src/main_draft.cpp.o: /home/yuxuan/Project/Big_RoverCarControl/devel/include/ecm_bridge/driverCmd.h
+car_control/CMakeFiles/rover_control.dir/src/main_draft.cpp.o: /home/yuxuan/Project/Big_RoverCarControl/devel/include/ecm_bridge/driverState.h
 car_control/CMakeFiles/rover_control.dir/src/main_draft.cpp.o: /home/yuxuan/Project/Big_RoverCarControl/src/car_control/src/damp_.hpp
+car_control/CMakeFiles/rover_control.dir/src/main_draft.cpp.o: /home/yuxuan/Project/Big_RoverCarControl/src/car_control/src/ecm_.hpp
 car_control/CMakeFiles/rover_control.dir/src/main_draft.cpp.o: /home/yuxuan/Project/Big_RoverCarControl/src/car_control/src/main_draft.cpp
 car_control/CMakeFiles/rover_control.dir/src/main_draft.cpp.o: /home/yuxuan/Project/Big_RoverCarControl/src/car_control/src/msg_.hpp
 car_control/CMakeFiles/rover_control.dir/src/main_draft.cpp.o: /home/yuxuan/Project/Big_RoverCarControl/src/car_control/src/spine/dynamixel_motor.h

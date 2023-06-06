@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   turtlesim
+  ecm_bridge
 )
 
 find_package(Boost REQUIRED COMPONENTS
@@ -41,11 +42,13 @@ include_directories(
 
 add_subdirectory(src/spine)
 add_executable(rover_control src/main_draft.cpp)
+add_dependencies(rover_control ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(rover_control 
   spine
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
-  )
+  rt
+)
 catkin_install_python(PROGRAMS
   scripts/joy_listener.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

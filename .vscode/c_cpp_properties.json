@@ -9,6 +9,8 @@
         "/opt/ros/noetic/include/**",
         "/usr/include/**",
         "/home/yuxuan/Project/Big_RoverCarControl/src/car_control/src/**",
+        "/home/yuxuan/Project/Big_RoverCarControl/src/ecm_bridge/include/**",
+        "/home/yuxuan/Project/Big_RoverCarControl/src/ecm_xf/include/**",
         "/home/yuxuan/Project/Big_RoverCarControl/devel/include/**",
         "/home/yuxuan/Downloads/encoder_motor_steering/DynamixelSDK/include/dynamixel_sdk/**",
       ],

@@ -1,2 +1,2 @@
-car_control
+car_control:ecm_bridge:ecm_xf
 -DCATKIN_DEVEL_PREFIX=/home/yuxuan/Project/Big_RoverCarControl/devel -DCMAKE_INSTALL_PREFIX=/home/yuxuan/Project/Big_RoverCarControl/install -G Unix Makefiles

@@ -16,11 +16,12 @@ static const float I_MAX = 18.0f;
 
 #define PI 3.141592657
 //车辆尺寸配置
-#define wheel_to_center_x 0.5
-#define wheel_to_center_y 0.5
-#define wheel_radius 1
+#define wheel_to_center_x 0.5/2.0
+#define wheel_to_center_y 0.78/2.0
+#define wheel_radius 0.22063/2.0
 #define wheel_to_center sqrt(pow(wheel_to_center_x,2)+pow(wheel_to_center_y,2))
 #define cal_distance(x,y) sqrt(pow(x,2)+pow(y,2))
+#define diag_angle atan2(wheel_to_center_x,wheel_to_center_y)*180.0/3.1415926
 
 
 

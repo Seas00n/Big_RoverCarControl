@@ -431,6 +431,21 @@ catkin_DIR:PATH=/opt/ros/noetic/share/catkin/cmake
 //The directory containing a CMake configuration file for cpp_common.
 cpp_common_DIR:PATH=/opt/ros/noetic/share/cpp_common/cmake
 
+//Value Computed by CMake
+ecm_bridge_BINARY_DIR:STATIC=/home/yuxuan/Project/Big_RoverCarControl/build/ecm_bridge
+
+//The directory containing a CMake configuration file for ecm_bridge.
+ecm_bridge_DIR:PATH=/home/yuxuan/Project/Big_RoverCarControl/devel/share/ecm_bridge/cmake
+
+//Value Computed by CMake
+ecm_bridge_SOURCE_DIR:STATIC=/home/yuxuan/Project/Big_RoverCarControl/src/ecm_bridge
+
+//Value Computed by CMake
+ecm_xf_BINARY_DIR:STATIC=/home/yuxuan/Project/Big_RoverCarControl/build/ecm_xf
+
+//Value Computed by CMake
+ecm_xf_SOURCE_DIR:STATIC=/home/yuxuan/Project/Big_RoverCarControl/src/ecm_xf
+
 //The directory containing a CMake configuration file for gencpp.
 gencpp_DIR:PATH=/opt/ros/noetic/share/gencpp/cmake
 
@@ -527,6 +542,9 @@ rospy_DIR:PATH=/opt/ros/noetic/share/rospy/cmake
 
 //The directory containing a CMake configuration file for rostime.
 rostime_DIR:PATH=/opt/ros/noetic/share/rostime/cmake
+
+//The directory containing a CMake configuration file for sensor_msgs.
+sensor_msgs_DIR:PATH=/opt/ros/noetic/share/sensor_msgs/cmake
 
 //Value Computed by CMake
 spine_BINARY_DIR:STATIC=/home/yuxuan/Project/Big_RoverCarControl/build/car_control/src/spine
@@ -696,7 +714,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=6
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=8
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP
