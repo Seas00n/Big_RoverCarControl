@@ -25,12 +25,14 @@ class SecondOrderDynamics:
 if __name__ =="__main__":
     sys = SecondOrderDynamics(f=8,z=0.8,r=0.)
     times = np.arange(0,500)
+    # 期望的状态值
     x_goal = np.zeros_like(times)
     for i in range(0,100):
         x_goal[i] = 0
     for i in range(100,np.size(x_goal,0)):
         x_goal[i] = 135*3.14/180
     y_list = np.zeros_like(times).astype('float32')
+    # 经过二阶系统调整后的状态，消除了阶跃
     for i in times:
         y_list[i] = sys.Update(x_goal[i])
     
